@@ -448,7 +448,7 @@ function paneLevel() {
     ${fld('Difficulty <code>difficulty</code>', `<select id="fDiff">${DIFFICULTY.map((d, k) => `<option value="${k}"${k === lv.difficulty ? ' selected' : ''}>${d}</option>`).join('')}</select>`)}
     ${fld('Tray slots at start <code>traySlots</code>', num('fTray', lv.traySlots, 1, MAX_TRAY))}
   </div>
-  <p class="hint">GDD: the tray starts with 1 slot; each Extra Tray adds 1, up to ${MAX_TRAY}.</p>
+  <p class="hint">GDD: levels 1–10 start with 1 slot, later levels with 1 to 3; each Extra Tray adds 1, up to ${MAX_TRAY}.</p>
   <div class="stat"><div><b>${lv.tubes.length}</b><span>tubes</span></div><div><b>${t.nBottles}</b><span>bottles</span></div><div><b>${t.nSets}</b><span>jam sets</span></div>
   <div><b>${t.colors.length}</b><span>colors</span></div><div><b>${t.layers}</b><span>layers</span></div><div><b>${t.hidden + t.locked + t.pairs}</b><span>elements</span></div></div>
   <h3>Elements</h3>

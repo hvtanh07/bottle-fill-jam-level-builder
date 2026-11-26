@@ -1,6 +1,6 @@
 # Bottle Fill Jam Level Builder
 
-A level builder for Bottle Fill Jam, built on the rules in the [Bottle Fill Jam GDD](https://hvtanh07.github.io/gdd-bottle-fill-jam/). 40 designed levels are built in. Each one has a shaped layout (spiral, wall, snakes, heart, rings, towers…), one challenge picked first, and a place on a sawtooth difficulty curve: hard levels at 10, 15, 25, 35, super hard at 20, 30, 40, an easier level after each peak. Elements unlock in the GDD order: Extra Tray (3), Hidden Jam (7), Shuffle (8), Locked Bottle (12), Remove (13), Blocked Jam Tube (17). All are solvable with 1 tray slot and no boosters.
+A level builder for Bottle Fill Jam, built on the rules in the [Bottle Fill Jam GDD](https://hvtanh07.github.io/gdd-bottle-fill-jam/). 40 designed levels are built in. Each one is a different picture (house, mountain, castle, cake, turtle, owl, burger, trophy…) laid out as a real pile: a lower layer never has fewer bottles than the layer above it, and every upper bottle rests on bottles under it. Each level has one challenge picked first; levels 1–10 each add a new skill (pour, two tubes, covered bottles, digging with the tray, 3 layers, digging order, Hidden Jam, reading ahead, a mix, the first hard level). Difficulty follows a sawtooth: hard levels at 10, 15, 25, 35, super hard at 20, 30, 40, an easier level after each peak. Elements unlock in the GDD order: Hidden Jam (7), Locked Bottle (12), Blocked Jam Tube (17); boosters are introduced at Extra Tray (4), Shuffle (8), Remove (13). Levels 1–10 start with 1 tray slot, later levels with 1 to 3. All are solvable with the level's tray and no boosters.
 
 **Tool:** https://hvtanh07.github.io/bottle-fill-jam-level-builder/
 
@@ -50,7 +50,7 @@ There is no game level file yet, so the tool defines one. It reads and writes th
 | Key | Meaning |
 | --- | --- |
 | `difficulty` | 0 Normal, 1 Hard, 2 Super hard. |
-| `traySlots` | Waiting tray slots at the start, 1–5. The GDD starts every level with 1; Extra Tray adds 1, up to 5. |
+| `traySlots` | Waiting tray slots at the start, 1–5. The GDD starts levels 1–10 with 1 and later levels with 1 to 3; Extra Tray adds 1, up to 5. |
 | `tubes[].sets` | Jam sets of the tube, listed from the nozzle (bottom) up. One set = 4 portions of one color = one bottle. |
 | `tubes[].hidden` | Indexes into `sets` that are Hidden Jam. |
 | `blockedPairs[]` | Blocked Jam Tube: tubes `tube` and `tube + 1` take turns. `count` = bottles to send before they swap, `open` = 0 if the left tube starts open, 1 for the right. |
@@ -82,5 +82,5 @@ Readings the GDD leaves open, chosen here: Shuffle mixes sets across tubes (not 
 - `src/render.js`: draws a level as SVG.
 - `src/shapes.js`: the Shape and Stack tools (line, arc, circle, spiral, deep column).
 - `src/data/levels.json`: the built-in levels.
-- `scripts/design-40.mjs`: the 40 level specs (layout, challenge, elements, difficulty tier) and the search that tunes them. `scripts/layouts.mjs`: the shapes. `scripts/out/design-40.json`: the levels with their play-test numbers.
+- `scripts/specs-40.mjs`: the 40 level specs (picture per layer, pile structure, skill, challenge, elements, tray, difficulty tier). `scripts/piles.mjs`: draws a pile from text pictures and checks the pile rules. `scripts/design-40.mjs`: the search that tunes each level. `scripts/layouts.mjs`: curve helpers. `scripts/out/design-40.json`: the levels with their play-test numbers.
 - `tests/`: Vitest tests.
