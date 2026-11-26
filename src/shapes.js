@@ -58,7 +58,7 @@ export function shapeBottles(kind, a, b, opt, existing = []) {
   return place(pts.map(p => ({x: p.x, y: p.y, rot: rot(p)})), opt.order || 'end', existing);
 }
 // Gives each new bottle a z: on top of what is under it; in a chain each one also rests on the one before.
-function place(pts, order, existing) {
+export function place(pts, order, existing = []) {
   const list = order === 'start' ? pts.slice().reverse() : pts.slice();
   const out = [];
   list.forEach(p => {
