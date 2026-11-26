@@ -466,7 +466,7 @@
  {
   "spec": {
    "n": 5,
-   "tier": "intro",
+   "tier": "easy",
    "L": [
     "wall",
     {
@@ -476,10 +476,8 @@
    ],
    "colors": 3,
    "tubes": 2,
-   "mix": 0.2,
-   "hidden": 2,
-   "unlock": "Hidden Jam",
-   "challenge": "Giới thiệu Hidden Jam: jam \"?\" chỉ hiện màu khi xuống đáy. Ít hidden, cột nông để người chơi thấy cơ chế lộ màu."
+   "mix": 0.3,
+   "challenge": "Lần đầu có cột sâu 3 tầng: chai cần có thể nằm ở đáy cột. Phải nhìn cả cột và đào đúng cột trước."
   },
   "level": {
    "id": "level_005",
@@ -494,9 +492,7 @@
       1,
       3
      ],
-     "hidden": [
-      2
-     ]
+     "hidden": []
     },
     {
      "sets": [
@@ -505,9 +501,7 @@
       1,
       3
      ],
-     "hidden": [
-      2
-     ]
+     "hidden": []
     }
    ],
    "blockedPairs": [],
@@ -587,15 +581,15 @@
    ]
   },
   "metrics": {
-   "casual": 0.8375,
-   "greedy": 0.84,
+   "casual": 0.93,
+   "greedy": 1,
    "random": 0.7933333333333333,
    "band": [
-    0.8,
+    0.65,
     1
    ],
    "inBand": true,
-   "mix": 0.2,
+   "mix": 0.3,
    "tries": 2,
    "moves": 9,
    "bottles": 9,
@@ -846,7 +840,7 @@
  {
   "spec": {
    "n": 7,
-   "tier": "normal",
+   "tier": "intro",
    "L": [
     "flower",
     {
@@ -855,11 +849,12 @@
      "center": 3
     }
    ],
-   "colors": 4,
+   "colors": 3,
    "tubes": 2,
-   "mix": 0.4,
-   "hidden": 3,
-   "challenge": "Hoa 5 cánh: giữ lại chai ở cánh hoa phòng khi Hidden Jam lộ màu bất ngờ."
+   "mix": 0.2,
+   "hidden": 2,
+   "unlock": "Hidden Jam",
+   "challenge": "Giới thiệu Hidden Jam: jam \"?\" chỉ hiện màu khi xuống đáy ống. Ít hidden, cánh hoa nông và nhiều chai mở để người chơi thấy cơ chế lộ màu mà không bị kẹt."
   },
   "level": {
    "id": "level_007",
@@ -869,29 +864,28 @@
     {
      "sets": [
       2,
-      3,
-      4,
-      4,
+      1,
+      1,
       1,
       2,
-      4
+      3,
+      3
      ],
      "hidden": [
-      4,
-      6
+      4
      ]
     },
     {
      "sets": [
+      2,
+      1,
+      3,
       3,
       1,
-      1,
-      4,
-      3,
       2
      ],
      "hidden": [
-      2
+      3
      ]
     }
    ],
@@ -902,7 +896,7 @@
      "y": 2.72,
      "z": 0,
      "rot": 0,
-     "color": 4,
+     "color": 2,
      "lock": 0
     },
     {
@@ -910,7 +904,7 @@
      "y": 2.42,
      "z": 1,
      "rot": 0,
-     "color": 2,
+     "color": 3,
      "lock": 0
     },
     {
@@ -918,7 +912,7 @@
      "y": 4.1,
      "z": 0,
      "rot": 0,
-     "color": 1,
+     "color": 3,
      "lock": 0
     },
     {
@@ -926,7 +920,7 @@
      "y": 4.01,
      "z": 1,
      "rot": 0,
-     "color": 3,
+     "color": 1,
      "lock": 0
     },
     {
@@ -934,7 +928,7 @@
      "y": 6.34,
      "z": 0,
      "rot": 0,
-     "color": 4,
+     "color": 1,
      "lock": 0
     },
     {
@@ -958,7 +952,7 @@
      "y": 6.58,
      "z": 1,
      "rot": 0,
-     "color": 3,
+     "color": 2,
      "lock": 0
     },
     {
@@ -966,7 +960,7 @@
      "y": 4.1,
      "z": 0,
      "rot": 0,
-     "color": 4,
+     "color": 1,
      "lock": 0
     },
     {
@@ -982,7 +976,7 @@
      "y": 4.42,
      "z": 0,
      "rot": 0,
-     "color": 2,
+     "color": 3,
      "lock": 0
     },
     {
@@ -990,7 +984,7 @@
      "y": 4.72,
      "z": 1,
      "rot": 0,
-     "color": 4,
+     "color": 2,
      "lock": 0
     },
     {
@@ -1004,16 +998,16 @@
    ]
   },
   "metrics": {
-   "casual": 0.6075,
-   "greedy": 0.41333333333333333,
-   "random": 0.7866666666666666,
+   "casual": 0.905,
+   "greedy": 1,
+   "random": 0.7266666666666667,
    "band": [
-    0.5,
-    0.75
+    0.8,
+    1
    ],
    "inBand": true,
-   "mix": 0.09999999999999998,
-   "tries": 19,
+   "mix": 0.2,
+   "tries": 3,
    "moves": 13,
    "bottles": 13,
    "layers": 3,
@@ -1672,188 +1666,7 @@
  {
   "spec": {
    "n": 11,
-   "tier": "intro",
-   "L": [
-    "ringTower",
-    {
-     "n": 10,
-     "deep": 3
-    }
-   ],
-   "colors": 4,
-   "tubes": 3,
-   "mix": 0.2,
-   "locks": [
-    3
-   ],
-   "lockAt": "top",
-   "unlock": "Locked Bottle",
-   "challenge": "Giới thiệu Locked Bottle: chai trên đỉnh tháp có số đếm 3, chỉ giảm khi gửi chai khác. Người chơi học \"gửi chai ngoài vòng để mở khóa\"."
-  },
-  "level": {
-   "id": "level_011",
-   "difficulty": 0,
-   "traySlots": 1,
-   "tubes": [
-    {
-     "sets": [
-      4,
-      2,
-      3,
-      2,
-      1
-     ],
-     "hidden": []
-    },
-    {
-     "sets": [
-      2,
-      1,
-      4,
-      3
-     ],
-     "hidden": []
-    },
-    {
-     "sets": [
-      3,
-      2,
-      4,
-      1
-     ],
-     "hidden": []
-    }
-   ],
-   "blockedPairs": [],
-   "bottles": [
-    {
-     "x": 3.5,
-     "y": 4.36,
-     "z": 0,
-     "rot": 0,
-     "color": 2,
-     "lock": 0
-    },
-    {
-     "x": 3.5,
-     "y": 4.68,
-     "z": 1,
-     "rot": 0,
-     "color": 3,
-     "lock": 0
-    },
-    {
-     "x": 3.5,
-     "y": 5,
-     "z": 2,
-     "rot": 0,
-     "color": 1,
-     "lock": 3
-    },
-    {
-     "x": 3.5,
-     "y": 2.1,
-     "z": 0,
-     "rot": 0,
-     "color": 2,
-     "lock": 0
-    },
-    {
-     "x": 4.91,
-     "y": 2.56,
-     "z": 0,
-     "rot": 36,
-     "color": 1,
-     "lock": 0
-    },
-    {
-     "x": 5.78,
-     "y": 3.76,
-     "z": 0,
-     "rot": 72,
-     "color": 4,
-     "lock": 0
-    },
-    {
-     "x": 5.78,
-     "y": 5.24,
-     "z": 0,
-     "rot": 108,
-     "color": 4,
-     "lock": 0
-    },
-    {
-     "x": 4.91,
-     "y": 6.44,
-     "z": 0,
-     "rot": 144,
-     "color": 2,
-     "lock": 0
-    },
-    {
-     "x": 3.5,
-     "y": 6.9,
-     "z": 0,
-     "rot": 180,
-     "color": 3,
-     "lock": 0
-    },
-    {
-     "x": 2.09,
-     "y": 6.44,
-     "z": 0,
-     "rot": 216,
-     "color": 4,
-     "lock": 0
-    },
-    {
-     "x": 1.22,
-     "y": 5.24,
-     "z": 0,
-     "rot": 252,
-     "color": 3,
-     "lock": 0
-    },
-    {
-     "x": 1.22,
-     "y": 3.76,
-     "z": 0,
-     "rot": 288,
-     "color": 1,
-     "lock": 0
-    },
-    {
-     "x": 2.09,
-     "y": 2.56,
-     "z": 0,
-     "rot": 324,
-     "color": 2,
-     "lock": 0
-    }
-   ]
-  },
-  "metrics": {
-   "casual": 0.9275,
-   "greedy": 1,
-   "random": 0.8666666666666667,
-   "band": [
-    0.8,
-    1
-   ],
-   "inBand": true,
-   "mix": 0.2,
-   "tries": 2,
-   "moves": 13,
-   "bottles": 13,
-   "layers": 3,
-   "free": 11,
-   "slots": 1
-  }
- },
- {
-  "spec": {
-   "n": 12,
-   "tier": "normal",
+   "tier": "easy",
    "L": [
     "butterfly",
     {
@@ -1863,51 +1676,46 @@
    ],
    "colors": 4,
    "tubes": 3,
-   "mix": 0.4,
-   "locks": [
-    3,
-    4
-   ],
-   "lockAt": "top",
-   "challenge": "Hai chai khóa (đầu thân và một cánh) che các chai bên dưới: phải gửi đủ chai từ cánh kia để mở khóa mà không làm đầy khay."
+   "mix": 0.35,
+   "challenge": "Nghỉ sau level khó: con bướm hai cánh mở rộng, thân là cột sâu. Nhiều lựa chọn, chỉ cần để dành thân bướm về sau."
   },
   "level": {
-   "id": "level_012",
+   "id": "level_011",
    "difficulty": 0,
    "traySlots": 1,
    "tubes": [
     {
      "sets": [
-      4,
-      3,
-      2,
       1,
-      2,
-      3,
-      3
-     ],
-     "hidden": []
-    },
-    {
-     "sets": [
-      1,
-      4,
-      4,
-      3,
-      1,
-      1,
-      2
-     ],
-     "hidden": []
-    },
-    {
-     "sets": [
-      2,
       1,
       3,
-      4,
+      3,
+      3,
       2,
       4
+     ],
+     "hidden": []
+    },
+    {
+     "sets": [
+      4,
+      3,
+      1,
+      2,
+      2,
+      2,
+      4
+     ],
+     "hidden": []
+    },
+    {
+     "sets": [
+      4,
+      3,
+      4,
+      1,
+      2,
+      1
      ],
      "hidden": []
     }
@@ -1919,7 +1727,7 @@
      "y": 4.35,
      "z": 0,
      "rot": 90,
-     "color": 3,
+     "color": 2,
      "lock": 0
     },
     {
@@ -1927,7 +1735,7 @@
      "y": 5.61,
      "z": 0,
      "rot": 125,
-     "color": 2,
+     "color": 4,
      "lock": 0
     },
     {
@@ -1935,7 +1743,7 @@
      "y": 6.25,
      "z": 0,
      "rot": 181,
-     "color": 2,
+     "color": 1,
      "lock": 0
     },
     {
@@ -1943,7 +1751,7 @@
      "y": 5.61,
      "z": 0,
      "rot": 235,
-     "color": 4,
+     "color": 3,
      "lock": 0
     },
     {
@@ -1951,7 +1759,7 @@
      "y": 4.35,
      "z": 0,
      "rot": 270,
-     "color": 1,
+     "color": 2,
      "lock": 0
     },
     {
@@ -1959,7 +1767,7 @@
      "y": 3.09,
      "z": 0,
      "rot": 305,
-     "color": 2,
+     "color": 4,
      "lock": 0
     },
     {
@@ -1983,7 +1791,7 @@
      "y": 4.35,
      "z": 1,
      "rot": 270,
-     "color": 1,
+     "color": 2,
      "lock": 0
     },
     {
@@ -1991,15 +1799,15 @@
      "y": 3.09,
      "z": 1,
      "rot": 305,
-     "color": 4,
-     "lock": 3
+     "color": 1,
+     "lock": 0
     },
     {
      "x": 5.1,
      "y": 2.45,
      "z": 0,
      "rot": 1,
-     "color": 1,
+     "color": 2,
      "lock": 0
     },
     {
@@ -2015,7 +1823,7 @@
      "y": 4.35,
      "z": 0,
      "rot": 90,
-     "color": 4,
+     "color": 3,
      "lock": 0
     },
     {
@@ -2023,7 +1831,7 @@
      "y": 5.61,
      "z": 0,
      "rot": 125,
-     "color": 2,
+     "color": 1,
      "lock": 0
     },
     {
@@ -2031,7 +1839,7 @@
      "y": 6.25,
      "z": 0,
      "rot": 181,
-     "color": 1,
+     "color": 3,
      "lock": 0
     },
     {
@@ -2047,7 +1855,7 @@
      "y": 4.9,
      "z": 2,
      "rot": 0,
-     "color": 2,
+     "color": 3,
      "lock": 0
     },
     {
@@ -2055,7 +1863,7 @@
      "y": 5.45,
      "z": 3,
      "rot": 0,
-     "color": 3,
+     "color": 4,
      "lock": 0
     },
     {
@@ -2063,7 +1871,7 @@
      "y": 6,
      "z": 4,
      "rot": 0,
-     "color": 3,
+     "color": 2,
      "lock": 0
     },
     {
@@ -2071,26 +1879,207 @@
      "y": 6.55,
      "z": 5,
      "rot": 0,
-     "color": 3,
-     "lock": 4
+     "color": 1,
+     "lock": 0
     }
    ]
   },
   "metrics": {
-   "casual": 0.6175,
-   "greedy": 0.92,
-   "random": 0.39,
+   "casual": 0.8025,
+   "greedy": 1,
+   "random": 0.3466666666666667,
    "band": [
-    0.5,
-    0.75
+    0.65,
+    1
    ],
    "inBand": true,
-   "mix": 0.7000000000000001,
-   "tries": 14,
+   "mix": 0.35,
+   "tries": 2,
    "moves": 20,
    "bottles": 20,
    "layers": 6,
    "free": 12,
+   "slots": 1
+  }
+ },
+ {
+  "spec": {
+   "n": 12,
+   "tier": "intro",
+   "L": [
+    "ringTower",
+    {
+     "n": 10,
+     "deep": 3
+    }
+   ],
+   "colors": 4,
+   "tubes": 3,
+   "mix": 0.2,
+   "locks": [
+    3
+   ],
+   "lockAt": "top",
+   "unlock": "Locked Bottle",
+   "challenge": "Giới thiệu Locked Bottle: chai trên đỉnh tháp có số đếm 3, chỉ giảm khi gửi chai khác. Người chơi học \"gửi chai ngoài vòng để mở khóa\"."
+  },
+  "level": {
+   "id": "level_012",
+   "difficulty": 0,
+   "traySlots": 1,
+   "tubes": [
+    {
+     "sets": [
+      4,
+      4,
+      3,
+      2,
+      3
+     ],
+     "hidden": []
+    },
+    {
+     "sets": [
+      4,
+      1,
+      3,
+      2
+     ],
+     "hidden": []
+    },
+    {
+     "sets": [
+      2,
+      3,
+      1,
+      1
+     ],
+     "hidden": []
+    }
+   ],
+   "blockedPairs": [],
+   "bottles": [
+    {
+     "x": 3.5,
+     "y": 4.36,
+     "z": 0,
+     "rot": 0,
+     "color": 1,
+     "lock": 0
+    },
+    {
+     "x": 3.5,
+     "y": 4.68,
+     "z": 1,
+     "rot": 0,
+     "color": 3,
+     "lock": 0
+    },
+    {
+     "x": 3.5,
+     "y": 5,
+     "z": 2,
+     "rot": 0,
+     "color": 3,
+     "lock": 3
+    },
+    {
+     "x": 3.5,
+     "y": 2.1,
+     "z": 0,
+     "rot": 0,
+     "color": 4,
+     "lock": 0
+    },
+    {
+     "x": 4.91,
+     "y": 2.56,
+     "z": 0,
+     "rot": 36,
+     "color": 1,
+     "lock": 0
+    },
+    {
+     "x": 5.78,
+     "y": 3.76,
+     "z": 0,
+     "rot": 72,
+     "color": 3,
+     "lock": 0
+    },
+    {
+     "x": 5.78,
+     "y": 5.24,
+     "z": 0,
+     "rot": 108,
+     "color": 2,
+     "lock": 0
+    },
+    {
+     "x": 4.91,
+     "y": 6.44,
+     "z": 0,
+     "rot": 144,
+     "color": 3,
+     "lock": 0
+    },
+    {
+     "x": 3.5,
+     "y": 6.9,
+     "z": 0,
+     "rot": 180,
+     "color": 4,
+     "lock": 0
+    },
+    {
+     "x": 2.09,
+     "y": 6.44,
+     "z": 0,
+     "rot": 216,
+     "color": 1,
+     "lock": 0
+    },
+    {
+     "x": 1.22,
+     "y": 5.24,
+     "z": 0,
+     "rot": 252,
+     "color": 2,
+     "lock": 0
+    },
+    {
+     "x": 1.22,
+     "y": 3.76,
+     "z": 0,
+     "rot": 288,
+     "color": 4,
+     "lock": 0
+    },
+    {
+     "x": 2.09,
+     "y": 2.56,
+     "z": 0,
+     "rot": 324,
+     "color": 2,
+     "lock": 0
+    }
+   ]
+  },
+  "metrics": {
+   "casual": 0.985,
+   "greedy": 1,
+   "random": 0.8133333333333334,
+   "band": [
+    0.8,
+    1
+   ],
+   "inBand": true,
+   "mix": 0.2,
+   "tries": 2,
+   "moves": 13,
+   "bottles": 13,
+   "layers": 3,
+   "free": 11,
    "slots": 1
   }
  },
