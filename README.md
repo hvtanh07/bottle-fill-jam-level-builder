@@ -1,6 +1,6 @@
 # Bottle Fill Jam Level Builder
 
-A level builder for Bottle Fill Jam, built on the rules in the [Bottle Fill Jam GDD](https://hvtanh07.github.io/gdd-bottle-fill-jam/). 40 designed levels are built in. Each one has a shaped layout (spiral, wall, snakes, heart, rings, towers…), one challenge picked first, and a place on a sawtooth difficulty curve: hard levels at 10, 15, 25, 35, super hard at 20, 30, 40, an easier level after each peak. Elements unlock in the GDD order: Extra Tray (3), Hidden Jam (5), Shuffle (8), Locked Bottle (11), Remove (13), Blocked Jam Tube (17). All are solvable with 1 tray slot and no boosters.
+A level builder for Bottle Fill Jam, built on the rules in the [Bottle Fill Jam GDD](https://hvtanh07.github.io/gdd-bottle-fill-jam/). 40 designed levels are built in. Each one has a shaped layout (spiral, wall, snakes, heart, rings, towers…), one challenge picked first, and a place on a sawtooth difficulty curve: hard levels at 10, 15, 25, 35, super hard at 20, 30, 40, an easier level after each peak. Elements unlock in the GDD order: Extra Tray (3), Hidden Jam (7), Shuffle (8), Locked Bottle (12), Remove (13), Blocked Jam Tube (17). All are solvable with 1 tray slot and no boosters.
 
 **Tool:** https://hvtanh07.github.io/bottle-fill-jam-level-builder/
 
