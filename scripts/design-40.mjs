@@ -74,7 +74,7 @@ export const SPECS = [
   {n: 36, tier: 'easy', L: ['archRow', {legs: 7, deep: 2, row: 7}], colors: 6, tubes: 4, mix: .35, challenge: 'Nghỉ: cầu vòm nông và hàng trước mở hết.'},
   {n: 37, tier: 'normal', L: ['towers', {deep: 5, bridge: 9}], colors: 6, tubes: 4, mix: .5, locks: [5], lockAt: 'top', pair: 5, challenge: 'Ba tháp sâu và cầu: chai khóa trên cầu che hai tháp, cặp ống nhịp 5.'},
   {n: 38, tier: 'normal', L: ['braid', {n: 17}], colors: 6, tubes: 4, mix: .5, hidden: 5, run: 2, challenge: 'Hai sợi bện vào nhau, nhiều jam ẩn: chỗ hai sợi chéo nhau bị đè, phải chọn sợi gỡ trước và đoán màu cùng lúc.'},
-  {n: 39, tier: 'rise', L: ['doubleRing', {n1: 22, n2: 12}], colors: 7, tubes: 4, mix: .4, locks: [4], lockAt: 'top', pair: 4, challenge: 'Hai vòng, hai chai khóa và cặp ống: chuẩn bị cho trùm level 40.'},
+  {n: 39, tier: 'rise', L: ['doubleRing', {n1: 22, n2: 12}], colors: 7, tubes: 4, mix: .4, locks: [4], lockAt: 'top', pair: 4, challenge: 'Hai vòng, một chai khóa ở vòng trong và cặp ống nhịp 4: vòng ngoài là chuỗi dài, phải mở vòng trong đúng lúc. Chuẩn bị cho trùm level 40.'},
   {n: 40, band: [.02, .08], tries: 150, tier: 'super', L: ['spiralCore', {n: 28, core: 5}], colors: 8, tubes: 5, mix: .65, hidden: 6, locks: [5, 6], lockAt: 'top', pair: 4, challenge: 'Trùm level 40: xoắn ốc quanh lõi sâu, 8 màu, 5 ống, đủ cả 3 element. Tổng hợp mọi kỹ năng đã học.'}
 ];
 

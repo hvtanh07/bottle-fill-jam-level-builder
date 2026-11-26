@@ -9463,7 +9463,7 @@
    ],
    "lockAt": "top",
    "pair": 4,
-   "challenge": "Hai vòng, hai chai khóa và cặp ống: chuẩn bị cho trùm level 40."
+   "challenge": "Hai vòng, một chai khóa ở vòng trong và cặp ống nhịp 4: vòng ngoài là chuỗi dài, phải mở vòng trong đúng lúc. Chuẩn bị cho trùm level 40."
   },
   "level": {
    "id": "level_039",
