@@ -194,7 +194,9 @@ export function check(lv) {
     lv.bottles.forEach((o, j) => { if (j > i && o.z === b.z && overlaps(o, b)) { const key = i + ':' + j; if (!seen.has(key)) { seen.set(key, 1); add('bad', `Bottles ${i + 1} and ${j + 1} overlap with the same order z (${b.z}), so neither rests on the other.`, {bottle: i}); } } });
     if (b.z > 0 && !lv.bottles.some((o, j) => j !== i && o.z < b.z && overlaps(o, b))) add('warn', `Bottle ${i + 1} has order z ${b.z} but rests on nothing (no lower bottle under it). Settle layers drops it.`, {bottle: i});
   });
-  if (lv.traySlots !== 1) add('warn', `The tray starts with ${lv.traySlots} slots. The GDD starts every level with 1 (Extra Tray adds more).`);
+  const num = parseInt(String(lv.id).replace(/\D/g, ''), 10);
+  if (lv.traySlots > 3) add('warn', `The tray starts with ${lv.traySlots} slots. The GDD allows 1 to 3 at the start (Extra Tray adds more).`);
+  else if (lv.traySlots > 1 && num <= 10) add('warn', `The tray starts with ${lv.traySlots} slots. The GDD starts levels 1–10 with 1 slot.`);
   if (lv.tubes.length > 5) add('warn', `${lv.tubes.length} tubes may not fit on a phone screen.`);
   if (t.locked && t.nBottles - t.locked < Math.max(...lv.bottles.map(b => b.lock))) add('bad', 'A Locked Bottle counter is higher than the number of other bottles, so it can never open (GDD fail-safe case).');
   return out;

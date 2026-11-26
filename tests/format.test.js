@@ -74,3 +74,10 @@ describe('shape tool', () => {
     expect(Math.hypot(s[0].x - 4, s[0].y - 4)).toBeGreaterThan(Math.hypot(s[19].x - 4, s[19].y - 4));
   });
 });
+
+import {pileIssues} from '../scripts/piles.mjs';
+describe('built-in levels are real piles', () => {
+  it('no layer has more bottles than the one under it, and every upper bottle rests on one', () => {
+    JSON.parse(RAW).levels.forEach(lv => expect(pileIssues(lv.bottles), lv.id).toEqual([]));
+  });
+});
