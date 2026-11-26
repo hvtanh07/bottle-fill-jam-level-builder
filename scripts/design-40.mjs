@@ -39,7 +39,7 @@ export const SPECS = [
   {n: 1, tier: 'intro', L: ['square4'], colors: 2, tubes: 1, mix: 0, unlock: 'Core (FTUE)', challenge: 'Học cách chơi: chạm chai cùng màu với jam ở đáy ống để rót. Không có cách thua.'},
   {n: 2, tier: 'easy', L: ['smile', {n: 6}], colors: 3, tubes: 2, mix: .1, challenge: 'Có 2 ống: nhìn đáy ống nào để chọn chai đúng. Thứ tự chạm bắt đầu có ý nghĩa.'},
   {n: 3, tier: 'easy', L: ['bridge', {n: 5}], colors: 3, tubes: 2, mix: .4, unlock: 'Booster Extra Tray', challenge: 'Khay chờ chỉ 1 ô: lần đầu khay bị đầy khi chạm chai sai màu. Dạy giữ khay trống và giới thiệu Extra Tray.'},
-  {n: 4, tier: 'normal', L: ['skyline', {deeps: [1, 2, 3, 2, 1]}], colors: 3, tubes: 2, mix: .45, challenge: 'Lần đầu có chai bị che: 5 cột cao thấp, chai phía sau chỉ mở khi chai trước đi. Phải nhìn chai phía sau trước khi chạm.'},
+  {n: 4, tier: 'easy', L: ['skyline', {deeps: [1, 2, 3, 2, 1]}], colors: 3, tubes: 2, mix: .45, challenge: 'Lần đầu có chai bị che: 5 cột cao thấp, chai phía sau chỉ mở khi chai trước đi. Phải nhìn chai phía sau trước khi chạm.'},
   {n: 5, tier: 'intro', L: ['wall', {cols: 3, deep: 3}], colors: 3, tubes: 2, mix: .2, hidden: 2, unlock: 'Hidden Jam', challenge: 'Giới thiệu Hidden Jam: jam "?" chỉ hiện màu khi xuống đáy. Ít hidden, cột nông để người chơi thấy cơ chế lộ màu.'},
   {n: 6, tier: 'normal', L: ['snakes', {n: 10}], colors: 4, tubes: 3, mix: .4, run: 2, challenge: 'Hai con rắn: chỉ đầu rắn mở. Phải chọn rắn nào để gỡ theo màu ống đang cần.'},
   {n: 7, tier: 'normal', L: ['flower', {petals: 5, deep: 2, center: 3}], colors: 4, tubes: 2, mix: .4, hidden: 3, challenge: 'Hoa 5 cánh: giữ lại chai ở cánh hoa phòng khi Hidden Jam lộ màu bất ngờ.'},
