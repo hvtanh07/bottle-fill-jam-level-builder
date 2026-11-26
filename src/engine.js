@@ -171,7 +171,8 @@ export function revive(s) {
 // Depth of the nearest set of color c in an open tube (0 = at the bottom), Infinity if none.
 function depthOf(s, c) {
   let d = Infinity;
-  s.tubes.forEach((tb, t) => { const k = tb.findIndex(x => x.c === c); if (k >= 0) d = Math.min(d, k + (tubeOpen(s, t) ? 0 : 2)); });
+  // a player does not know Hidden Jam colors until they reach the nozzle, so the bot does not use them either
+  s.tubes.forEach((tb, t) => { const k = tb.findIndex(x => x.c === c && !x.h); if (k >= 0) d = Math.min(d, k + (tubeOpen(s, t) ? 0 : 2)); });
   return d;
 }
 function frees(s, i) { let n = 0; for (let j = 0; j < s.st.length; j++) if (s.st[j] === ST.BOARD && s.cover[j].includes(i) && s.cover[j].every(o => o === i || s.st[o] !== ST.BOARD)) n++; return n; }

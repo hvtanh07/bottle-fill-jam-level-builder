@@ -1,6 +1,6 @@
 # Bottle Fill Jam Level Builder
 
-A level builder for Bottle Fill Jam, built on the rules in the [Bottle Fill Jam GDD](https://hvtanh07.github.io/gdd-bottle-fill-jam/). 21 levels are built in: level_001 is the FTUE from GDD section 2.2, level_002–016 come from the generator, level_017–021 are free-form piles (spiral, wall of deep columns, two snakes, arch with a row, arch with a tower). All are solvable with 1 tray slot and no boosters.
+A level builder for Bottle Fill Jam, built on the rules in the [Bottle Fill Jam GDD](https://hvtanh07.github.io/gdd-bottle-fill-jam/). 40 designed levels are built in. Each one has a shaped layout (spiral, wall, snakes, heart, rings, towers…), one challenge picked first, and a place on a sawtooth difficulty curve: hard levels at 10, 15, 25, 35, super hard at 20, 30, 40, an easier level after each peak. Elements unlock in the GDD order: Extra Tray (3), Hidden Jam (7), Shuffle (8), Locked Bottle (12), Remove (13), Blocked Jam Tube (17). All are solvable with 1 tray slot and no boosters.
 
 **Tool:** https://hvtanh07.github.io/bottle-fill-jam-level-builder/
 
@@ -13,7 +13,7 @@ npm install
 npm run dev      # opens the builder at http://localhost:5173
 npm test         # format round trip, game rules, boosters, solver
 npm run build    # writes dist/index.html, one file that opens without a server
-node scripts/make-levels.mjs   # rebuilds the built-in levels in src/data/levels.json
+node scripts/design-40.mjs     # rebuilds the 40 built-in levels in src/data/levels.json (add 5,10 to redo only those)
 ```
 
 Every push to `main` runs the tests, builds, and publishes `dist/` to the `gh-pages` branch, which GitHub Pages serves.
@@ -82,5 +82,5 @@ Readings the GDD leaves open, chosen here: Shuffle mixes sets across tubes (not 
 - `src/render.js`: draws a level as SVG.
 - `src/shapes.js`: the Shape and Stack tools (line, arc, circle, spiral, deep column).
 - `src/data/levels.json`: the built-in levels.
-- `scripts/make-levels.mjs`: rebuilds the built-in levels.
+- `scripts/design-40.mjs`: the 40 level specs (layout, challenge, elements, difficulty tier) and the search that tunes them. `scripts/layouts.mjs`: the shapes. `scripts/out/design-40.json`: the levels with their play-test numbers.
 - `tests/`: Vitest tests.
