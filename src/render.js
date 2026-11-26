@@ -1,7 +1,7 @@
 // Draws a level as SVG: the machine with its jam tubes, the fill spots, the waiting tray and the bottle pile.
 import {colorHex, boardBounds, MAX_TRAY, PORTIONS} from './format.js';
 
-export const CELL = 56, ZOFF = 7, TW = 58, TG = 22, SETH = 24, BOARD_COLS = 7, BOARD_ROWS = 6, ZPAD = 5;
+export const CELL = 48, ZOFF = 0, TW = 58, TG = 22, SETH = 24, BOARD_COLS = 8, BOARD_ROWS = 10, ZPAD = 0, BK = CELL / 56;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
 
 export function layout(lv, s) {
@@ -14,7 +14,7 @@ export function layout(lv, s) {
   const trayW = MAX_TRAY * slotW + (MAX_TRAY - 1) * slotG;
   const b0 = boardBounds(lv.bottles), maxZ = ZPAD;
   // the board frame is fixed (BOARD_COLS × BOARD_ROWS) so the picture does not jump while bottles are added
-  const bb = lv.bottles.length ? {x0: Math.min(0, b0.x0), y0: Math.min(0, b0.y0), x1: Math.max(BOARD_COLS - 1, b0.x1), y1: Math.max(BOARD_ROWS - 1, b0.y1)} : {x0: 0, y0: 0, x1: BOARD_COLS - 1, y1: BOARD_ROWS - 1};
+  const bb = lv.bottles.length ? {x0: Math.min(0, Math.floor(b0.x0)), y0: Math.min(0, Math.floor(b0.y0)), x1: Math.max(BOARD_COLS - 1, Math.ceil(b0.x1)), y1: Math.max(BOARD_ROWS - 1, Math.ceil(b0.y1))} : {x0: 0, y0: 0, x1: BOARD_COLS - 1, y1: BOARD_ROWS - 1};
   const boardTop = trayY + 62;
   const boardW = (bb.x1 - bb.x0 + 1) * CELL;
   const boardH = (bb.y1 - bb.y0 + 1) * CELL + maxZ * ZOFF;
@@ -109,14 +109,16 @@ export function bottleSVG(c, o = {}) {
 }
 
 // Board position (center) of bottle i in design.
-export const boardXY = (L, b) => ({x: L.bx(b.x), y: L.by(b.y, b.z)});
+export const boardXY = (L, b) => ({x: L.bx(b.x), y: L.by(b.y, b.z), rot: b.rot || 0});
+export const btTransform = p => `translate(${p.x} ${p.y}) rotate(${p.rot || 0}) scale(${BK})`;
+export const btStyle = p => `translate(${p.x}px, ${p.y}px) rotate(${p.rot || 0}deg) scale(${BK * (p.gone === 'removed' ? .2 : 1)})`;
 // Where bottle i is in the play test.
 export function playXY(L, lv, s, i) {
   const st = s.st[i];
-  if (st === 1) { const k = s.tray.indexOf(i); return {x: L.slotX(k), y: L.trayY, z: 900}; }
-  if (st === 2) { const t = s.spots.indexOf(i); return {x: L.tx(t), y: L.spotY + 2, z: 950}; }
+  if (st === 1) { const k = s.tray.indexOf(i); return {x: L.slotX(k), y: L.trayY, z: 900, rot: 0}; }
+  if (st === 2) { const t = s.spots.indexOf(i); return {x: L.tx(t), y: L.spotY + 2, z: 950, rot: 0}; }
   const p = boardXY(L, lv.bottles[i]);
-  if (st === 3) return {x: p.x, y: -80, z: 990, gone: 'done'};
+  if (st === 3) return {x: p.x, y: -80, z: 990, rot: 0, gone: 'done'};
   if (st === 4) return {...p, z: 980, gone: 'removed'};
   return {...p, z: lv.bottles[i].z};
 }

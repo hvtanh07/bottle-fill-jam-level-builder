@@ -1,8 +1,9 @@
 import './style.css';
 import ORIGINAL from './data/levels.json';
 import {PALETTE, colorHex, colorName, DIFFICULTY, MAX_TRAY, normalize, blankLevel, serialize, serializeFile, compact, parseLevels, check, statusOf, tally, overlaps, autoZ, rng, shuffleArr} from './format.js';
-import {ST, newGame, clone as cloneGame, tap, completeFill, settle, outcome, isFree, tappable, destination, extraTray, shuffle as shuffleBooster, removeBooster, revive, botChoice, estimate, solve, fewestSlots, generate, pilePositions} from './engine.js';
-import {layout, viewBox, drawStatic, bottleSVG, boardXY, playXY, DEFS, CELL} from './render.js';
+import {ST, newGame, clone as cloneGame, tap, completeFill, settle, outcome, isFree, tappable, destination, extraTray, shuffle as shuffleBooster, removeBooster, revive, botChoice, estimate, solve, fewestSlots, generate, pilePositions, buildSets} from './engine.js';
+import {layout, viewBox, drawStatic, bottleSVG, boardXY, playXY, btTransform, btStyle, DEFS, CELL} from './render.js';
+import {shapeBottles} from './shapes.js';
 
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
@@ -18,7 +19,7 @@ let levels = [], cur = 0;
 let tab = 'level', mode = 'edit', tool = 'select';
 let sel = {bottles: new Set(), set: null, tube: null};
 let undo = [], redo = [], lastSnap = '';
-let prefs = {color: 1, showZ: false, grid: true, lockCount: 3, fast: false};
+let prefs = {color: 1, showZ: false, grid: true, lockCount: 3, fast: false, snap: 0.25, shape: {kind: 'arc', n: 10, orient: 'along', order: 'end', bend: 180, turns: 1.5, colors: 'current', mixed: 4}, stack: {n: 6, step: 0.3}};
 let genOpt = {colors: 4, perColor: 4, tubes: 2, shape: 'pyramid', cols: 4, rows: 3, traySlots: 1, hidden: 0, locked: 0, lockCount: 3, pair: false, pairCount: 3, minRate: 0, maxRate: 100, seed: 1};
 const L = () => levels[cur];
 const hash = t => { let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return String(h >>> 0); };
@@ -31,7 +32,9 @@ function load() {
   if (saved && Array.isArray(saved.levels) && saved.levels.length) { levels = saved.levels.map(normalize); cur = Math.min(saved.cur | 0, levels.length - 1); savedBase = saved.base || ''; }
   else { levels = clone(ORIG_LEVELS); cur = 0; }
   if (!levels.length) levels = [blankLevel('level_001')];
+  const d = clone(prefs);
   try { Object.assign(prefs, JSON.parse(localStorage.getItem(STORE + '.prefs') || '{}')); } catch (e) {}
+  prefs.shape = {...d.shape, ...(prefs.shape || {})}; prefs.stack = {...d.stack, ...(prefs.stack || {})};
   try { Object.assign(genOpt, JSON.parse(localStorage.getItem(STORE + '.gen') || '{}')); } catch (e) {}
 }
 const STALE = 'The built-in levels changed since you last saved here. Press Reset to built-in levels to load them (export first to keep your edits).';
@@ -115,14 +118,38 @@ const HINTS = {
   paint: 'Click a bottle or jam set to give it the current color.',
   erase: 'Click a bottle or jam set to delete it.',
   lock: 'Click a bottle to make it a Locked Bottle (counter set in the Bottles tab) or to unlock it.',
-  hidden: 'Click a jam set to make it Hidden Jam, or to show it again.'
+  hidden: 'Click a jam set to make it Hidden Jam, or to show it again.',
+  shape: 'Drag on the board: line and arc go from press to release; circle and spiral are centered on the press. Pick the shape and count in the toolbar.',
+  stack: 'Click to add a deep column (front bottle on top, the rest behind). Drag to set which way it goes back.'
 };
 function syncTools() {
   $$('#tools [data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === tool)));
   $('#toolHint').textContent = mode === 'edit' ? HINTS[tool] : '';
   $('#tZ').setAttribute('aria-pressed', String(prefs.showZ)); $('#tGrid').setAttribute('aria-pressed', String(prefs.grid));
   $('#pFast').setAttribute('aria-pressed', String(prefs.fast));
+  $('#snapSel').value = String(prefs.snap);
+  renderShapeOpts();
 }
+function renderShapeOpts() {
+  const el = $('#shapeOpts'), sh = prefs.shape, st = prefs.stack;
+  if (mode !== 'edit' || (tool !== 'shape' && tool !== 'stack')) { el.hidden = true; return; }
+  el.hidden = false;
+  const sel = (k, v, opts) => `<select data-so="${k}">${opts.map(([a, b]) => `<option value="${a}"${String(v) === String(a) ? ' selected' : ''}>${b}</option>`).join('')}</select>`;
+  const n = (k, v, min, max, step = 1, w = 52) => `<input type="number" data-so="${k}" value="${v}" min="${min}" max="${max}" step="${step}" style="width:${w}px">`;
+  el.innerHTML = tool === 'stack'
+    ? `<span class="hint">Bottles</span>${n('stack.n', st.n, 2, 30)}<span class="hint">Step back</span>${n('stack.step', st.step, .1, .9, .05, 60)}`
+    : `${sel('shape.kind', sh.kind, [['line', 'Line'], ['arc', 'Arc'], ['circle', 'Circle'], ['spiral', 'Spiral']])}<span class="hint">Bottles</span>${n('shape.n', sh.n, 1, 80)}
+       ${sel('shape.orient', sh.orient, [['upright', 'Upright'], ['along', 'Along the path'], ['across', 'Across the path']])}
+       ${sel('shape.order', sh.order, [['end', 'Chain: last on top'], ['start', 'Chain: first on top'], ['flat', 'Flat (no chain)']])}
+       ${sh.kind === 'arc' ? `<span class="hint">Bend°</span>${n('shape.bend', sh.bend, 10, 350, 10, 60)}` : ''}${sh.kind === 'spiral' ? `<span class="hint">Turns</span>${n('shape.turns', sh.turns, .5, 5, .25, 56)}` : ''}
+       ${sel('shape.colors', sh.colors, [['current', 'Current color'], ['mixed', 'Mixed colors']])}${sh.colors === 'mixed' ? `<span class="hint">1–</span>${n('shape.mixed', sh.mixed, 1, 8, 1, 44)}` : ''}`;
+}
+$('#shapeOpts').addEventListener('change', e => {
+  const k = e.target.dataset.so; if (!k) return;
+  const [g, f] = k.split('.'), v = e.target.tagName === 'SELECT' && isNaN(+e.target.value) ? e.target.value : +e.target.value;
+  prefs[g][f] = v; savePrefs(); renderShapeOpts();
+});
+$('#snapSel').addEventListener('change', e => { prefs.snap = +e.target.value; savePrefs(); });
 $('#tools').addEventListener('click', e => { const b = e.target.closest('[data-tool]'); if (b) { tool = b.dataset.tool; syncTools(); } });
 $('#tZ').addEventListener('click', () => { prefs.showZ = !prefs.showZ; savePrefs(); syncTools(); renderStage(); });
 $('#tGrid').addEventListener('click', () => { prefs.grid = !prefs.grid; savePrefs(); syncTools(); renderStage(); });
@@ -145,14 +172,14 @@ function renderEdit() {
   const order = lv.bottles.map((b, i) => i).sort((a, b) => lv.bottles[a].z - lv.bottles[b].z || lv.bottles[a].y - lv.bottles[b].y || lv.bottles[a].x - lv.bottles[b].x);
   $('#bottles').innerHTML = order.map(i => {
     const b = lv.bottles[i], p = boardXY(LAY, b);
-    return `<g class="bt" data-b="${i}" transform="translate(${p.x} ${p.y})">${bottleSVG(b.color, {covered: cov[i], locked: b.lock > 0, count: b.lock > 0 ? b.lock : undefined, sel: sel.bottles.has(i), z: b.z, showZ: prefs.showZ})}</g>`;
+    return `<g class="bt" data-b="${i}" transform="${btTransform(p)}">${bottleSVG(b.color, {covered: cov[i], locked: b.lock > 0, count: b.lock > 0 ? b.lock : undefined, sel: sel.bottles.has(i), z: b.z, showZ: prefs.showZ})}</g>`;
   }).join('');
   $('#ui').innerHTML = '';
 }
 
 /* ---------- design: pointer ---------- */
 function svgPt(e) { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
-const snapH = v => Math.round(v * 2) / 2;
+const snapH = v => prefs.snap > 0 ? Math.round(Math.round(v / prefs.snap) * prefs.snap * 100) / 100 : Math.round(v * 100) / 100;
 let drag = null;
 svg.addEventListener('pointerdown', e => {
   if (mode !== 'edit' || e.button > 0) return;
@@ -181,6 +208,12 @@ svg.addEventListener('pointerdown', e => {
     edit(l => { l.bottles.push({x, y, z, color: prefs.color, lock: 0}); clearSel(); sel.bottles.add(l.bottles.length - 1); }, tab !== 'bottles' && tab !== 'level' && tab !== 'check');
     return;
   }
+  if (tool === 'shape' || tool === 'stack') {
+    if (p.y < LAY.boardTop - 20) return;
+    const q = LAY.fromBoard(p.x, p.y, 0);
+    drag = {kind: 'shape', a: {x: snapH(q.x), y: snapH(q.y)}, b: null};
+    drag.b = drag.a; svg.setPointerCapture(e.pointerId); shapePreview(); return;
+  }
   if (tool === 'paint') {
     if (bi >= 0) edit(l => { l.bottles[bi].color = prefs.color; });
     else if (setRef) edit(l => { l.tubes[setRef.t].sets[setRef.k] = prefs.color; });
@@ -197,6 +230,7 @@ svg.addEventListener('pointerdown', e => {
 svg.addEventListener('pointermove', e => {
   if (!drag) return;
   const p = svgPt(e);
+  if (drag.kind === 'shape') { const q = LAY.fromBoard(p.x, p.y, 0); drag.b = {x: snapH(q.x), y: snapH(q.y)}; shapePreview(); return; }
   if (drag.kind === 'move') {
     const dx = snapH((p.x - drag.start.x) / CELL), dy = snapH((p.y - drag.start.y) / CELL);
     if (!dx && !dy && !drag.moved) return;
@@ -213,6 +247,11 @@ svg.addEventListener('pointermove', e => {
 function endDrag() {
   if (!drag) return;
   if (drag.kind === 'move' && drag.moved) { commit(); renderPane(); }
+  if (drag.kind === 'shape') {
+    const got = shapeNow();
+    $('#ui').innerHTML = '';
+    if (got.length) edit(l => { const n0 = l.bottles.length; l.bottles.push(...got); clearSel(); got.forEach((_, k) => sel.bottles.add(n0 + k)); });
+  }
   if (drag.kind === 'marq' && drag.rect) {
     const r = drag.rect;
     L().bottles.forEach((b, i) => { const q = boardXY(LAY, b); if (q.x >= r.x && q.x <= r.x + r.w && q.y >= r.y && q.y <= r.y + r.h) sel.bottles.add(i); });
@@ -222,6 +261,17 @@ function endDrag() {
 }
 svg.addEventListener('pointerup', endDrag); svg.addEventListener('pointercancel', endDrag);
 
+function shapeNow() {
+  if (!drag || drag.kind !== 'shape') return [];
+  const lv = L(), sh = prefs.shape;
+  const got = tool === 'stack' ? shapeBottles('stack', drag.a, drag.b, prefs.stack, lv.bottles) : shapeBottles(sh.kind, drag.a, drag.b, sh, lv.bottles);
+  const r = rng(hash(JSON.stringify(drag.a) + JSON.stringify(drag.b)) | 0);
+  return got.map(b => ({...b, color: tool === 'shape' && sh.colors === 'mixed' ? 1 + Math.floor(r() * Math.max(1, Math.min(8, sh.mixed))) : prefs.color, lock: 0}));
+}
+function shapePreview() {
+  const got = shapeNow();
+  $('#ui').innerHTML = `<g class="ghost">${got.slice().sort((a, b) => a.z - b.z).map(b => `<g transform="${btTransform(boardXY(LAY, b))}">${bottleSVG(b.color, {})}</g>`).join('')}</g>`;
+}
 // Moved bottles keep their layers relative to each other and sit on top of whatever is under them.
 function restack(lv, moved) {
   const ids = [...moved]; if (!ids.length) return;
@@ -304,7 +354,7 @@ function renderPlay() {
       if (g.dataset.where && st !== ST.BOARD) { host.appendChild(g); g.getBoundingClientRect(); }
       g.dataset.where = where;
     }
-    g.style.transform = `translate(${p.x}px, ${p.y}px)` + (p.gone === 'removed' ? ' scale(.2)' : '');
+    g.style.transform = btStyle(p);
     g.classList.toggle('gone', !!p.gone); g.classList.toggle('covered', o.covered || locked);
   });
   const out = outcome(s);
@@ -428,8 +478,12 @@ function paneTubes() {
     </div><div class="btns"><button class="btn" type="button" data-pdel="${k}">Delete pair</button></div></div>`).join('');
   return `<h2>Jam tubes</h2>
   <p class="hint">Each set is 4 portions of one color and fills one bottle. Click a set on the machine to select it; keys 1–8 recolor it, <kbd>H</kbd> hides it, <kbd>Delete</kbd> removes it.</p>
-  <div class="btns"><button class="btn" type="button" id="tAdd">+ Tube</button><button class="btn" type="button" id="tBuild">Build sets from bottles</button><button class="btn" type="button" id="tMix">Mix set order</button></div>
-  <p class="hint">Build sets from bottles: one set per bottle, random order, spread over the ${lv.tubes.length || 1} tube${lv.tubes.length === 1 ? '' : 's'} (clears Hidden Jam).</p>
+  <div class="btns"><button class="btn" type="button" id="tAdd">+ Tube</button><button class="btn" type="button" id="tMix">Mix set order</button></div>
+  <div class="elem"><b>Build jam sets from the bottles</b>
+    <div class="fields">${fld('Tubes', num('sbTubes', Math.max(1, lv.tubes.length), 1, 6))}${fld('Mix %', num('sbMix', prefs.sbMix ?? 30, 0, 100, 5))}</div>
+    <div class="btns"><button class="btn primary" type="button" id="tSolvable">Build solvable sets</button><button class="btn" type="button" id="tBuild">Random sets</button></div>
+    <p class="hint">Solvable: deals one set per bottle in an order the pile can be cleared in, mixes it by Mix %, and keeps the most mixed order the solver wins with ${lv.traySlots} tray slot${lv.traySlots === 1 ? '' : 's'}. Random: one set per bottle in any order. Both keep Hidden Jam positions where they still exist.</p>
+    <div class="msg" id="sbMsg"></div></div>
   ${cards}
   <h3>Blocked Jam Tube</h3>
   <p class="hint">Two side-by-side tubes take turns: one open, one closed. The counter counts every bottle sent from the board; at 0 they swap. When one tube is empty the other stays open.</p>
@@ -443,14 +497,15 @@ function paneBottles() {
     const i = ids[0], b = lv.bottles[i];
     top = `<h3>Bottle ${i + 1}</h3><div class="fields">
       ${fld('x', num('bX', b.x, -20, 40, .5))}${fld('y', num('bY', b.y, -20, 40, .5))}
-      ${fld('Layer <code>z</code>', num('bZ', b.z, 0, 20))}${fld('Color', colorSel('bC', b.color))}
+      ${fld('Cover order <code>z</code>', num('bZ', b.z, 0, 999))}${fld('Turn <code>rot</code> (°)', num('bR', b.rot, -360, 360, 5))}${fld('Color', colorSel('bC', b.color))}
       ${fld('Locked Bottle counter <code>lock</code> (0 = normal)', num('bL', b.lock, 0, 99), 'full')}</div>`;
   } else if (ids.length > 1) {
-    top = `<h3>${ids.length} bottles selected</h3><div class="fields">${fld('Color', colorSel('bC', lv.bottles[ids[0]].color))}${fld('Lock counter', num('bL', lv.bottles[ids[0]].lock, 0, 99))}</div>`;
+    top = `<h3>${ids.length} bottles selected</h3><div class="fields">${fld('Color', colorSel('bC', lv.bottles[ids[0]].color))}${fld('Lock counter', num('bL', lv.bottles[ids[0]].lock, 0, 99))}${fld('Turn each (°)', num('bR', lv.bottles[ids[0]].rot, -360, 360, 5))}</div>`;
   }
   const rows = t.colors.map(c => { const b = t.bottles[c] || 0, s = t.sets[c] || 0; return `<tr><td><span class="pc" style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${colorHex(c)};vertical-align:-1px"></span> ${colorName(c)}</td><td>${b}</td><td>${s}</td><td class="${b !== s ? 'x' : ''}">${b === s ? '✓' : (b - s > 0 ? '+' : '') + (b - s)}</td></tr>`; }).join('');
   return `<h2>Bottles</h2>${top}
-  ${ids.length ? `<div class="btns"><button class="btn" type="button" id="bDel">Delete selected</button><button class="btn" type="button" id="bUpL">Layer up <kbd>]</kbd></button><button class="btn" type="button" id="bDnL">Layer down <kbd>[</kbd></button></div>` : ''}
+  ${ids.length ? `<div class="btns"><button class="btn" type="button" id="bDel">Delete</button><button class="btn" type="button" id="bDup">Duplicate <kbd>Ctrl D</kbd></button><button class="btn" type="button" id="bUpL">Order up <kbd>]</kbd></button><button class="btn" type="button" id="bDnL">Order down <kbd>[</kbd></button>
+    <button class="btn" type="button" id="bRotL">Turn −15° <kbd>Q</kbd></button><button class="btn" type="button" id="bRotR">Turn +15° <kbd>E</kbd></button>${ids.length > 1 ? `<button class="btn" type="button" id="bGrpL">Turn group −15° <kbd>Shift Q</kbd></button><button class="btn" type="button" id="bGrpR">Turn group +15° <kbd>Shift E</kbd></button><button class="btn" type="button" id="bMirSel">Mirror group</button><button class="btn" type="button" id="bChain">Make a chain (by order picked)</button>` : ''}</div>` : ''}
   <h3>Default lock counter</h3><div class="fields">${fld('New Locked Bottles start at', num('bDefLock', prefs.lockCount, 1, 99))}</div>
   <h3>Bottles and jam per color</h3>
   <table class="tally"><tr><th>Color</th><th>Bottles</th><th>Sets</th><th></th></tr>${rows || '<tr><td colspan="4" class="hint">No bottles yet.</td></tr>'}</table>
@@ -515,6 +570,7 @@ function paneHelp() {
   return `<h2>How it works</h2>
   <p>Rules from the <a href="https://hvtanh07.github.io/gdd-bottle-fill-jam/" target="_blank" rel="noopener">Bottle Fill Jam GDD</a>, sections 1.1 to 1.5.</p>
   <ul>
+  <li><b>Pile</b>: each bottle has a position, a turn and a cover order <code>z</code>. It rests on every lower-z bottle its shape overlaps. Use Shape for lines, arcs, circles and spirals (a chain rests each bottle on the one before) and Stack for deep columns. Then Tubes → Build solvable sets.</li>
   <li>Tap a free bottle (nothing rests on it). If an open tube has its color at the bottom and a free fill spot, it goes there (leftmost tube first) and fills with one set of 4 portions. Else it goes to the first free tray slot from the left. Tray full: it shakes and stays.</li>
   <li>A poured set leaves and the column drops one set. Tray bottles go up on their own when their color reaches the bottom of an open tube (leftmost first).</li>
   <li>While a bottle fills, its spot is busy; another bottle of that color goes to the tray.</li>
@@ -525,11 +581,13 @@ function paneHelp() {
   <li><b>Boosters</b>: Extra Tray (+1 slot, up to 5), Shuffle (mixes the jam sets so each open tube gets a color you can send), Remove (3 bottles: top of the pile first, then lower layers, locked last, each with the matching set farthest from a nozzle).</li>
   </ul>
   <h3>Keys</h3><div class="keys">
-  <kbd>V B P E L H</kbd><span>Select, Bottle, Paint, Erase, Lock, Hidden tools</span>
+  <kbd>V B S K P E L H</kbd><span>Select, Bottle, Shape, Stack, Paint, Erase, Lock, Hidden tools</span>
+  <kbd>Q</kbd> <kbd>E</kbd><span>Turn selected bottles 15° (Shift: turn the group around its center)</span>
+  <kbd>Ctrl D</kbd><span>Duplicate selected bottles</span>
   <kbd>1</kbd>–<kbd>8</kbd><span>Pick a color (and recolor the selection)</span>
   <kbd>Delete</kbd><span>Delete the selected bottles or set</span>
-  <kbd>←↑→↓</kbd><span>Move selected bottles half a bottle (Shift: one)</span>
-  <kbd>[</kbd> <kbd>]</kbd><span>Layer down / up</span>
+  <kbd>←↑→↓</kbd><span>Move selected bottles one snap step (Shift: one bottle)</span>
+  <kbd>[</kbd> <kbd>]</kbd><span>Cover order down / up</span>
   <kbd>Z</kbd> <kbd>G</kbd><span>Show layers / grid</span>
   <kbd>Ctrl Z</kbd> <kbd>Ctrl Y</kbd><span>Undo / redo (in play test: undo move)</span>
   <kbd>Tab</kbd><span>Switch Design / Play test</span>
@@ -556,6 +614,7 @@ $('#pane').addEventListener('change', e => {
   const ids = [...sel.bottles];
   if (id === 'bX' || id === 'bY') return edit(l => { const b = l.bottles[ids[0]]; b[id === 'bX' ? 'x' : 'y'] = snapH(+v); restack(l, new Set(ids)); });
   if (id === 'bZ') return edit(l => { l.bottles[ids[0]].z = Math.max(0, +v | 0); });
+  if (id === 'bR') return edit(l => ids.forEach(i => { l.bottles[i].rot = ((Math.round(+v) % 360) + 360) % 360; restack(l, new Set([i])); }));
   if (id === 'bC') return edit(l => ids.forEach(i => { l.bottles[i].color = +v; }));
   if (id === 'bL') return edit(l => ids.forEach(i => { l.bottles[i].lock = Math.max(0, +v | 0); }));
   if (id === 'bDefLock') { prefs.lockCount = Math.max(1, +v | 0); savePrefs(); return; }
@@ -592,14 +651,30 @@ $('#pane').addEventListener('click', e => {
   if (d.setmv !== undefined) { const [t, k, dd] = d.setmv.split(':').map(Number); return edit(l => { if (moveSet(l, t, k, dd)) sel.set = {t, k: k + dd}; }); }
   if (d.setdel !== undefined) { const [t, k] = d.setdel.split(':').map(Number); return edit(l => removeSet(l, t, k)); }
   if (b.id === 'tBuild') return edit(l => {
-    const r = rng(Math.floor(Math.random() * 1e9)), colors = shuffleArr(l.bottles.map(x => x.color), r), n = Math.max(1, l.tubes.length);
+    const r = rng(Math.floor(Math.random() * 1e9)), colors = shuffleArr(l.bottles.map(x => x.color), r), n = Math.max(1, +$('#sbTubes').value | 0 || l.tubes.length);
     l.tubes = Array.from({length: n}, () => ({sets: [], hidden: []})); colors.forEach((c, k) => l.tubes[k % n].sets.push(c));
   });
+  if (b.id === 'tSolvable') {
+    const T = Math.max(1, +$('#sbTubes').value | 0), mix = Math.min(100, Math.max(0, +$('#sbMix').value || 0)); prefs.sbMix = mix; savePrefs();
+    $('#sbMsg').className = 'msg'; $('#sbMsg').textContent = 'Working…';
+    setTimeout(() => {
+      const r = buildSets(L(), {tubes: T, mix: mix / 100, seed: 1 + Math.floor(Math.random() * 1e9)});
+      if (r.error) { $('#sbMsg').className = 'msg bad'; $('#sbMsg').textContent = r.error; return; }
+      edit(l => { l.tubes = r.tubes; l.blockedPairs = r.blockedPairs; });
+      $('#sbMsg').className = 'msg ok'; $('#sbMsg').textContent = `Done: solvable, ${r.swaps} swaps from the easy order, greedy bot wins ${Math.round(r.rate * 100)}%.`;
+    }, 20);
+    return;
+  }
   if (b.id === 'tMix') return edit(l => { const r = rng(Math.floor(Math.random() * 1e9)); l.tubes.forEach(t => { shuffleArr(t.sets, r); t.hidden = []; }); });
   if (b.id === 'pAdd') return edit(l => { const used = new Set(l.blockedPairs.flatMap(p => [p.tube, p.tube + 1])); let t = 0; while (t + 1 < l.tubes.length && (used.has(t) || used.has(t + 1))) t++; l.blockedPairs.push({tube: Math.min(t, l.tubes.length - 2), count: 3, open: 0}); });
   if (d.pdel !== undefined) return edit(l => { l.blockedPairs.splice(+d.pdel, 1); });
   if (b.id === 'bDel') return deleteSel();
   if (b.id === 'bUpL' || b.id === 'bDnL') return layerSel(b.id === 'bUpL' ? 1 : -1);
+  if (b.id === 'bDup') return duplicateSel();
+  if (b.id === 'bRotL' || b.id === 'bRotR') return rotateSel(b.id === 'bRotR' ? 15 : -15, false);
+  if (b.id === 'bGrpL' || b.id === 'bGrpR') return rotateSel(b.id === 'bGrpR' ? 15 : -15, true);
+  if (b.id === 'bMirSel') return edit(l => { const ids = [...sel.bottles], a = Math.min(...ids.map(i => l.bottles[i].x)) + Math.max(...ids.map(i => l.bottles[i].x)); ids.forEach(i => { const q = l.bottles[i]; q.x = Math.round((a - q.x) * 100) / 100; q.rot = (360 - q.rot) % 360; }); });
+  if (b.id === 'bChain') return edit(l => { const ids = [...sel.bottles], base = Math.min(...ids.map(i => l.bottles[i].z)); ids.forEach((i, k) => { l.bottles[i].z = base + k; }); });
   if (b.id === 'bSettle') return edit(l => settleLayers(l));
   if (b.id === 'bCenter') return edit(l => { if (!l.bottles.length) return; const x0 = Math.min(...l.bottles.map(q => q.x)), y0 = Math.min(...l.bottles.map(q => q.y)); l.bottles.forEach(q => { q.x -= x0; q.y -= y0; }); });
   if (b.id === 'bMirror') return edit(l => { if (!l.bottles.length) return; const a = Math.min(...l.bottles.map(q => q.x)) + Math.max(...l.bottles.map(q => q.x)); l.bottles.forEach(q => { q.x = a - q.x; }); });
@@ -623,6 +698,20 @@ function deleteSel() {
   const lv = L();
   if (sel.bottles.size) { const ids = [...sel.bottles].sort((a, b) => b - a); edit(l => { ids.forEach(i => l.bottles.splice(i, 1)); clearSel(); }); return; }
   if (sel.set) { const {t, k} = sel.set; if (lv.tubes[t] && lv.tubes[t].sets[k] !== undefined) edit(l => removeSet(l, t, k)); }
+}
+function duplicateSel() {
+  if (!sel.bottles.size) return;
+  edit(l => { const ids = [...sel.bottles], n0 = l.bottles.length; ids.forEach(i => l.bottles.push({...l.bottles[i], x: Math.round((l.bottles[i].x + 1) * 100) / 100, y: Math.round((l.bottles[i].y + .5) * 100) / 100}));
+    const nids = ids.map((_, k) => n0 + k); restack(l, new Set(nids)); clearSel(); nids.forEach(i => sel.bottles.add(i)); });
+}
+function rotateSel(d, group) {
+  if (!sel.bottles.size) return;
+  edit(l => {
+    const ids = [...sel.bottles], cx = ids.reduce((a, i) => a + l.bottles[i].x, 0) / ids.length, cy = ids.reduce((a, i) => a + l.bottles[i].y, 0) / ids.length, t = d * Math.PI / 180;
+    ids.forEach(i => { const q = l.bottles[i]; q.rot = (((q.rot + d) % 360) + 360) % 360;
+      if (group) { const dx = q.x - cx, dy = q.y - cy; q.x = Math.round((cx + dx * Math.cos(t) - dy * Math.sin(t)) * 100) / 100; q.y = Math.round((cy + dx * Math.sin(t) + dy * Math.cos(t)) * 100) / 100; } });
+    restack(l, new Set(ids));
+  });
 }
 function layerSel(d) { if (!sel.bottles.size) return; edit(l => sel.bottles.forEach(i => { l.bottles[i].z = Math.max(0, l.bottles[i].z + d); })); }
 function nudge(dx, dy) { if (!sel.bottles.size) return; edit(l => { sel.bottles.forEach(i => { l.bottles[i].x += dx; l.bottles[i].y += dy; }); restack(l, sel.bottles); }); }
@@ -688,8 +777,10 @@ document.addEventListener('keydown', e => {
   }
   if (ctrl && k.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? doRedo() : doUndo(); return; }
   if (ctrl && k.toLowerCase() === 'y') { e.preventDefault(); doRedo(); return; }
+  if (ctrl && k.toLowerCase() === 'd') { e.preventDefault(); duplicateSel(); return; }
   if (ctrl) return;
-  const tools = {v: 'select', b: 'bottle', p: 'paint', e: 'erase', l: 'lock'};
+  if ((k === 'q' || k === 'Q' || k === 'e' || k === 'E') && sel.bottles.size) { rotateSel(k.toLowerCase() === 'e' ? 15 : -15, e.shiftKey); return; }
+  const tools = {v: 'select', b: 'bottle', p: 'paint', e: 'erase', l: 'lock', s: 'shape', k: 'stack'};
   if (tools[k.toLowerCase()]) { tool = tools[k.toLowerCase()]; syncTools(); return; }
   if (k === 'h' || k === 'H') { if (sel.set) edit(l => toggleHidden(l, sel.set.t, sel.set.k)); else { tool = 'hidden'; syncTools(); } return; }
   if (/^[1-8]$/.test(k)) { setColor(+k, true); return; }
@@ -698,7 +789,7 @@ document.addEventListener('keydown', e => {
   if (k === 'z' || k === 'Z') { prefs.showZ = !prefs.showZ; savePrefs(); syncTools(); renderEdit(); return; }
   if (k === 'g' || k === 'G') { prefs.grid = !prefs.grid; savePrefs(); syncTools(); renderEdit(); return; }
   if (k === '[' || k === ']') { layerSel(k === ']' ? 1 : -1); return; }
-  const st = e.shiftKey ? 1 : .5, mv = {ArrowLeft: [-st, 0], ArrowRight: [st, 0], ArrowUp: [0, -st], ArrowDown: [0, st]}[k];
+  const st = e.shiftKey ? 1 : (prefs.snap || .05), mv = {ArrowLeft: [-st, 0], ArrowRight: [st, 0], ArrowUp: [0, -st], ArrowDown: [0, st]}[k];
   if (mv && sel.bottles.size) { e.preventDefault(); nudge(...mv); }
 });
 

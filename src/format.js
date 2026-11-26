@@ -7,7 +7,8 @@
 //   tubes         [{sets: [color...], hidden: [set index...]}]  sets are listed from the nozzle (bottom) up
 //   blockedPairs  [{tube, count, open}]  Blocked Jam Tube: tubes `tube` and `tube + 1`, swap every `count` bottles sent,
 //                 `open` 0 = the left tube starts open, 1 = the right one
-//   bottles       [{x, y, z, color, lock}]  x right / y down in bottle widths, z = layer (0 at the bottom),
+//   bottles       [{x, y, z, rot, color, lock}]  x right / y down in bottle widths (any value, 2 decimals),
+//                 z = cover order (a bottle rests on every lower-z bottle its shape overlaps), rot = degrees clockwise,
 //                 lock = Locked Bottle counter (0 = a normal bottle)
 // Colors are the GDD color list: 1 Red, 2 Blue, 3 Green, 4 Yellow, 5 Pink, 6 Orange, 7 Purple, 8 Brown.
 
@@ -27,7 +28,8 @@ export const DIFFICULTY = ['Normal', 'Hard', 'Super hard'];
 export const MAX_TRAY = 5, PORTIONS = 4;
 
 const int = (v, d = 0) => { const n = Math.round(Number(v)); return Number.isFinite(n) ? n : d; };
-const half = v => { const n = Number(v); return Number.isFinite(n) ? Math.round(n * 2) / 2 : 0; };
+const r2 = v => { const n = Number(v); return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0; };
+const deg = v => { const n = Math.round(Number(v)); return Number.isFinite(n) ? ((n % 360) + 360) % 360 : 0; };
 
 export function normalize(raw) {
   const o = raw && typeof raw === 'object' ? raw : {};
@@ -37,7 +39,7 @@ export function normalize(raw) {
     return {sets, hidden};
   });
   const blockedPairs = (Array.isArray(o.blockedPairs) ? o.blockedPairs : []).map(p => ({tube: int(p && p.tube), count: Math.max(1, int(p && p.count, 2)), open: int(p && p.open) ? 1 : 0}));
-  const bottles = (Array.isArray(o.bottles) ? o.bottles : []).map(b => ({x: half(b && b.x), y: half(b && b.y), z: Math.max(0, int(b && b.z)), color: int(b && b.color, 1), lock: Math.max(0, int(b && b.lock))}));
+  const bottles = (Array.isArray(o.bottles) ? o.bottles : []).map(b => ({x: r2(b && b.x), y: r2(b && b.y), z: Math.max(0, int(b && b.z)), rot: deg(b && b.rot), color: int(b && b.color, 1), lock: Math.max(0, int(b && b.lock))}));
   return {
     id: String(o.id ?? 'level'),
     difficulty: Math.min(2, Math.max(0, int(o.difficulty))),
@@ -61,13 +63,13 @@ export function serialize(lv, pad = '') {
     `${p}"traySlots": ${lv.traySlots},\n` +
     `${p}"tubes": ${arr(lv.tubes.map(t => line({sets: t.sets, hidden: t.hidden})))},\n` +
     `${p}"blockedPairs": ${arr(lv.blockedPairs.map(b => line({tube: b.tube, count: b.count, open: b.open})))},\n` +
-    `${p}"bottles": ${arr(lv.bottles.map(b => line({x: b.x, y: b.y, z: b.z, color: b.color, lock: b.lock})))}\n` +
+    `${p}"bottles": ${arr(lv.bottles.map(b => line({x: b.x, y: b.y, z: b.z, rot: b.rot, color: b.color, lock: b.lock})))}\n` +
     `${pad}}`;
 }
 export function serializeFile(levels, meta = {}) {
   return `{\n  "version": ${int(meta.version, 1)},\n  "levels": [\n${levels.map(l => serialize(l, '    ')).join(',\n')}\n  ]\n}\n`;
 }
-export const compact = lv => JSON.stringify({id: lv.id, difficulty: lv.difficulty, traySlots: lv.traySlots, tubes: lv.tubes, blockedPairs: lv.blockedPairs, bottles: lv.bottles});
+export const compact = lv => JSON.stringify({id: lv.id, difficulty: lv.difficulty, traySlots: lv.traySlots, tubes: lv.tubes, blockedPairs: lv.blockedPairs, bottles: lv.bottles.map(b => ({x: b.x, y: b.y, z: b.z, rot: b.rot, color: b.color, lock: b.lock}))});
 
 /* ---------- reading ---------- */
 function splitTsv(text) {
@@ -115,14 +117,36 @@ export function parseLevels(text) {
 }
 
 /* ---------- board geometry ---------- */
-// A bottle covers one bottle width square. A bottle rests on another when it is on a higher layer and the squares overlap.
-export const overlaps = (a, b) => Math.abs(a.x - b.x) < 0.999 && Math.abs(a.y - b.y) < 0.999;
+// A bottle's shape on the board: a FOOT_W × FOOT_H rectangle (in bottle widths) turned by rot.
+// A bottle rests on another when it has a higher z and the shapes overlap by more than a hair.
+export const FOOT_W = 0.78, FOOT_H = 0.95;
+const EPS = 0.02;
+function axes(b) { const a = (b.rot || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a); return [[c, s], [-s, c]]; }
+function corners(b) {
+  const [[ux, uy], [vx, vy]] = axes(b), w = FOOT_W / 2, h = FOOT_H / 2;
+  return [[-w, -h], [w, -h], [w, h], [-w, h]].map(([p, q]) => [b.x + p * ux + q * vx, b.y + p * uy + q * vy]);
+}
+export function overlaps(a, b) {
+  const dx = a.x - b.x, dy = a.y - b.y;
+  if (dx * dx + dy * dy >= 1.6) return false;
+  const ra = a.rot || 0, rb = b.rot || 0;
+  if (ra % 90 === 0 && rb % 90 === 0) {
+    const wa = ra % 180 ? FOOT_H : FOOT_W, ha = ra % 180 ? FOOT_W : FOOT_H, wb = rb % 180 ? FOOT_H : FOOT_W, hb = rb % 180 ? FOOT_W : FOOT_H;
+    return Math.abs(dx) < (wa + wb) / 2 - EPS && Math.abs(dy) < (ha + hb) / 2 - EPS;
+  }
+  const ca = corners(a), cb = corners(b);
+  for (const [ax, ay] of [...axes(a), ...axes(b)]) {
+    const pa = ca.map(([x, y]) => x * ax + y * ay), pb = cb.map(([x, y]) => x * ax + y * ay);
+    if (Math.max(...pa) - EPS <= Math.min(...pb) || Math.max(...pb) - EPS <= Math.min(...pa)) return false;
+  }
+  return true;
+}
 export function coverMap(bottles) {
   return bottles.map((b, i) => bottles.reduce((acc, o, j) => { if (j !== i && o.z > b.z && overlaps(o, b)) acc.push(j); return acc; }, []));
 }
 // Layer for a new bottle at (x, y): one above the highest bottle it overlaps.
-export function autoZ(bottles, x, y, skip = new Set()) {
-  let z = -1; bottles.forEach((b, i) => { if (!skip.has(i) && overlaps(b, {x, y})) z = Math.max(z, b.z); }); return z + 1;
+export function autoZ(bottles, x, y, skip = new Set(), rot = 0) {
+  let z = -1; bottles.forEach((b, i) => { if (!skip.has(i) && overlaps(b, {x, y, rot})) z = Math.max(z, b.z); }); return z + 1;
 }
 export function boardBounds(bottles) {
   if (!bottles.length) return {x0: 0, y0: 0, x1: 0, y1: 0};
@@ -167,8 +191,8 @@ export function check(lv) {
   });
   const seen = new Map();
   lv.bottles.forEach((b, i) => {
-    lv.bottles.forEach((o, j) => { if (j > i && o.z === b.z && overlaps(o, b)) { const key = i + ':' + j; if (!seen.has(key)) { seen.set(key, 1); add('bad', `Bottles ${i + 1} and ${j + 1} overlap on the same layer (${b.z}).`, {bottle: i}); } } });
-    if (b.z > 0 && !lv.bottles.some((o, j) => j !== i && o.z === b.z - 1 && overlaps(o, b))) add('warn', `Bottle ${i + 1} is on layer ${b.z} but rests on nothing in layer ${b.z - 1}.`, {bottle: i});
+    lv.bottles.forEach((o, j) => { if (j > i && o.z === b.z && overlaps(o, b)) { const key = i + ':' + j; if (!seen.has(key)) { seen.set(key, 1); add('bad', `Bottles ${i + 1} and ${j + 1} overlap with the same order z (${b.z}), so neither rests on the other.`, {bottle: i}); } } });
+    if (b.z > 0 && !lv.bottles.some((o, j) => j !== i && o.z < b.z && overlaps(o, b))) add('warn', `Bottle ${i + 1} has order z ${b.z} but rests on nothing (no lower bottle under it). Settle layers drops it.`, {bottle: i});
   });
   if (lv.traySlots !== 1) add('warn', `The tray starts with ${lv.traySlots} slots. The GDD starts every level with 1 (Extra Tray adds more).`);
   if (lv.tubes.length > 5) add('warn', `${lv.tubes.length} tubes may not fit on a phone screen.`);
