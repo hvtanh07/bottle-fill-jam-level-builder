@@ -51,12 +51,16 @@
         <button class="tb" data-tool="paint" type="button" title="Paint (P): click a bottle or jam set to give it the current color">Paint</button>
         <button class="tb" data-tool="erase" type="button" title="Erase (E): click a bottle or jam set to delete it">Erase</button>
         <button class="tb" data-tool="lock" type="button" title="Locked Bottle (L): click a bottle to lock or unlock it">Lock</button>
+        <button class="tb" data-tool="shape" type="button" title="Shape (S): drag on the board to lay bottles along a line, arc, circle or spiral">Shape</button>
+        <button class="tb" data-tool="stack" type="button" title="Stack (K): click for a deep column of bottles; drag to set the direction it goes back">Stack</button>
         <button class="tb" data-tool="hidden" type="button" title="Hidden Jam (H): click a jam set to hide or show it">Hidden</button>
       </div>
+      <div class="grp" data-edit id="shapeOpts" role="group" aria-label="Shape options"></div>
       <div class="grp" data-edit id="palette" role="group" aria-label="Color"></div>
       <div class="grp" data-edit>
         <button class="tb" id="tZ" type="button" aria-pressed="false" title="Show layer numbers (Z)">Layers</button>
         <button class="tb" id="tGrid" type="button" aria-pressed="true" title="Show the board grid (G)">Grid</button>
+        <label class="hint" for="snapSel">Snap</label><select id="snapSel" title="Snap for placing and moving bottles"><option value="0">Off</option><option value="0.05">0.05</option><option value="0.1">0.1</option><option value="0.25">0.25</option><option value="0.5">0.5</option><option value="1">1</option></select>
       </div>
       <div class="grp" data-play hidden>
         <button class="tb" id="pRestart" type="button" title="Restart (R)"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span class="lbl">Restart</span></button>

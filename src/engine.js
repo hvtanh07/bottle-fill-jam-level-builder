@@ -294,3 +294,45 @@ export function generate(opt) {
   return best ? {...best, offTarget: true} : {error: `No solvable level found in ${o.tries} tries. Add tray slots, tubes or fewer locks.`};
 }
 export {overlaps};
+
+/* ---------- jam sets for a hand-made pile ---------- */
+// Builds tube sets for the level's bottles so the level can be won: picks a random order the pile can be cleared in,
+// deals it round-robin into the tubes (so every bottle could fill at once), then mixes the order by `mix` (0..1)
+// and keeps the most mixed version the solver can still win with the level's tray slots.
+export function buildSets(lv, {tubes, mix = 0.3, seed = 1, tries = 24} = {}) {
+  const T = Math.max(1, tubes || lv.tubes.length || 1), n = lv.bottles.length, r = rng(seed);
+  if (!n) return {error: 'Add bottles first.'};
+  const cover = coverMap(lv.bottles);
+  let best = null;
+  for (let tr = 0; tr < tries; tr++) {
+    // a clearing order: any free bottle; a Locked Bottle only after enough others went while it was free
+    const gone = new Uint8Array(n), freeSince = new Int32Array(n).fill(-1), order = [];
+    while (order.length < n) {
+      const step = order.length;
+      for (let i = 0; i < n; i++) if (!gone[i] && freeSince[i] < 0 && cover[i].every(j => gone[j])) freeSince[i] = step;
+      const cand = [];
+      for (let i = 0; i < n; i++) if (!gone[i] && freeSince[i] >= 0 && (lv.bottles[i].lock <= 0 || step - freeSince[i] >= lv.bottles[i].lock)) cand.push(i);
+      if (!cand.length) break;
+      const i = cand[Math.floor(r() * cand.length)]; gone[i] = 1; order.push(i);
+    }
+    if (order.length < n) return {error: 'The pile cannot be cleared: a Locked Bottle counter is too high.'};
+    const sets = Array.from({length: T}, () => []);
+    order.forEach((i, k) => sets[k % T].push(lv.bottles[i].color));
+    const swaps = Math.round(mix * n * (0.6 + 0.8 * r()));
+    for (let k = 0; k < swaps; k++) {
+      const t = Math.floor(r() * T), u = r() < .5 ? t : Math.floor(r() * T), a = sets[t], b = sets[u];
+      if (!a.length || !b.length) continue;
+      const i = Math.floor(r() * a.length), j = Math.min(b.length - 1, Math.max(0, i + (t === u ? 1 : Math.floor(r() * 3) - 1)));
+      [a[i], b[j]] = [b[j], a[i]];
+    }
+    const tubesOut = sets.map((s, t) => ({sets: s, hidden: (lv.tubes[t] ? lv.tubes[t].hidden : []).filter(h => h < s.length)}));
+    const cand = normalize({...lv, tubes: tubesOut, blockedPairs: lv.blockedPairs.filter(p => p.tube + 1 < T)});
+    const sol = solve(cand, {limit: 30000});
+    if (sol.result === 'win') {
+      const est = estimate(cand, 40, 'greedy', seed + tr);
+      if (!best || swaps > best.swaps) best = {tubes: cand.tubes, blockedPairs: cand.blockedPairs, swaps, rate: est.rate};
+      if (swaps >= mix * n) break;
+    }
+  }
+  return best || {error: 'No solvable jam order found. Try less mixing, more tubes or more tray slots.'};
+}
